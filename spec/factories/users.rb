@@ -1,8 +1,8 @@
 FactoryGirl.define do
   factory :user do
-    name "MyString"
-    email "MyString"
-    password_digest "MyString"
-    token "MyString"
+    sequence(:name) { |n| "#{n}Name" }
+    sequence(:email) { |n| "mail#{n}@fake.com" }
+    sequence(:password_digest) { |n| "#{n}password" }
+    sequence(:token) { |n| "#{n}token" }
   end
 end
