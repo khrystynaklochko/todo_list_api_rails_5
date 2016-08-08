@@ -1,5 +1,6 @@
 class UsersController < ApplicationController
   before_action :set_user, only: [:show, :update, :destroy]
+  before_action :check_loged_in_user, only: [:create, :update, :destroy]
 
   # GET /users/1
   def show
