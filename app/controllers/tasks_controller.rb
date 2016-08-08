@@ -1,58 +1,57 @@
 class TasksController < ApplicationController
   before_action :set_task, only: [:show, :edit, :update, :destroy]
 
-  # GET /tasks
+ # GET /tasks
   def index
-    @tasks = Task.all
+    tasks = Task.all
+    tasks = tasks.page(params[:page] ? params[:page][:number] : 1)
+    render json: tasks, meta: pagination_meta(tasks), include: ['user']
   end
 
   # GET /tasks/1
   def show
-  end
-
-  # GET /tasks/new
-  def new
-    @task = Task.new
-  end
-
-  # GET /tasks/1/edit
-  def edit
+    render json: @task
   end
 
   # POST /tasks
   def create
-    @task = Task.new(task_params)
-
-    if @task.save
-      redirect_to @task, notice: 'Task was successfully created.'
+    task = Task.new(task_params)
+    if task.save
+      render json: task, status: :created
     else
-      render :new
+      show_error(task, :unprocessable_entity)
     end
   end
 
   # PATCH/PUT /tasks/1
   def update
-    if @task.update(task_params)
-      redirect_to @task, notice: 'Task was successfully updated.'
+    if @task.update_attributes(task_params)
+      render json: @task, status: :ok
     else
-      render :edit
+      show_error(@task, :unprocessable_entity)
     end
   end
 
   # DELETE /tasks/1
   def destroy
     @task.destroy
-    redirect_to tasks_url, notice: 'Task was successfully destroyed.'
+    head 204
   end
 
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_task
-      @task = Task.find(params[:id])
+      begin
+        @task = Task.find params[:id]
+      rescue ActiveRecord::RecordNotFound
+        task = Task.new
+        task.errors.add(:id, "Undifined ud")
+        show_error(task, 404) and return
+      end
     end
 
     # Only allow a trusted parameter "white list" through.
     def task_params
-      params.require(:task).permit(:title, :description, :user_id)
+      ActiveModelSerializers::Deserialization.jsonapi_parse(params)
     end
 end
